@@ -8,7 +8,7 @@
         <div class="buttons-field">
             <div class="btn-field apply-btn-field">
                 <div class="action-btn apply-btn" @onclick="Apply">Apply</div>
-                <div class>Confirmation menu</div>
+                <div class>@GetLastZipFileName()</div>
                 <div style="display: flex; flex-direction: column; align-items: center; visibility: @(_progressPercentApply > 0 ? "visible" : "hidden");">
                     <div class="progress-track">
                         <div class="progress-fill progress-fill-apply" style="width: @_progressPercentApply%;"></div>
@@ -66,6 +66,11 @@
     protected override void OnInitialized()
     {
         LoadSettings();
+
+        if (ParentLayout != null)
+        {
+            ParentLayout.OnFolderChanged += HandleFolderChanged;
+        }
     }
 
     private int _progressPercentApply = 0; 
@@ -223,6 +228,15 @@
         
         _configManager.Save();
     }
+
+    private void HandleFolderChanged()
+    {
+        _saveFileName = ParentLayout.ChosenSaveFileName;
+        _saveFilePath = ParentLayout.ChosenSaveFilePath;
+        LoadSettings();
+        InvokeAsync(StateHasChanged);
+        
+    }
     
 
 }
@@ -271,6 +285,8 @@
         transition: all 0.2s ease;
         cursor: pointer;
         color: black;
+        
+        flex-shrink: 0;
 
     }
 

@@ -30,6 +30,7 @@
 @code {
     public string? ChosenSaveFilePath;
     public string? ChosenSaveFileName = "Not chosen";
+    public event Action? OnFolderChanged;
 
     protected override void OnInitialized()
     {
@@ -41,15 +42,17 @@
     {
         try
         {
-            if (ChosenSaveFileName != null)
-                SaveSettings();
+            if (ChosenSaveFileName == null)
+                return;
             
+            SaveSettings();
             var result = await FolderPicker.Default.PickAsync(@"C:\Users\Name\AppData\Roaming\");
             ChosenSaveFilePath = result.Folder.Path;
             ChosenSaveFileName = Path.GetFileName(ChosenSaveFilePath);
-            
-            
             SaveSettings();
+            
+            
+            OnFolderChanged?.Invoke();
         }
         catch
         {
