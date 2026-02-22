@@ -1,8 +1,11 @@
 ﻿@using BTWSaver.Config
+@using BTWSaver.Models
+@using BTWSaver.Services
 @using CommunityToolkit.Maui.Core.Primitives
 @using CommunityToolkit.Maui.Storage
 @inherits LayoutComponentBase
 @inject BTWSaver.Config.ConfigManager _configManager
+@inject TrackerBrain Brain
 
 <div class="master-layout">
         <nav class="side-panel">
@@ -10,10 +13,15 @@
                 <p class="saver-text">Saver</p>
             </div>
             <div class="choose-save-file-btn" @onclick="PickAFolder">Choose save file</div>
-            <div class="navigation-button active">
-                <div class="nav-text">@ChosenSaveFileName</div>
-                <span class="delete-cross-btn">&times;</span>
-            </div>
+            
+            @foreach (SaveFile saveFile in Brain.SaveFiles)
+            {
+                <NavLink href="@($"/save-file/{saveFile.SaveFileName}")" 
+                         class="navigation-button">
+                    @saveFile.SaveFileName
+                </NavLink>
+            }
+            
         </nav>
     
         <div class="content-area">
@@ -34,7 +42,8 @@
 
     protected override void OnInitialized()
     {
-        ChosenSaveFilePath = _configManager.GetProperty("lastOpenedFilePath");
+        Brain.LoadFromFile();
+        ChosenSaveFilePath = Brain.LastOpenedFilePath;
         ChosenSaveFileName = Path.GetFileName(ChosenSaveFilePath);
     }
     
@@ -42,14 +51,15 @@
     {
         try
         {
-            if (ChosenSaveFileName == null)
-                return;
-            
             SaveSettings();
             var result = await FolderPicker.Default.PickAsync(@"C:\Users\Name\AppData\Roaming\");
             ChosenSaveFilePath = result.Folder.Path;
             ChosenSaveFileName = Path.GetFileName(ChosenSaveFilePath);
             SaveSettings();
+            
+            Brain.SaveFiles.Add(
+                new SaveFile {SaveFileName = ChosenSaveFileName, SaveFilePath = ChosenSaveFilePath});
+            StateHasChanged();
             
             
             OnFolderChanged?.Invoke();
@@ -64,9 +74,8 @@
 
     private void SaveSettings()
     {
-        _configManager.SetProperty("lastOpenedFilePath", ChosenSaveFilePath);
-        _configManager.SetProperty(ChosenSaveFileName + ".targetSaveFilePath", ChosenSaveFilePath);
-        _configManager.Save();
+        Brain.LastOpenedFilePath = ChosenSaveFilePath;
+        Brain.SaveToFile();
     }
 
 }
@@ -143,6 +152,7 @@
         justify-content: space-between;
         align-items: center;
         
+        background-color: #000000;
         text-decoration: none;
         padding: 10px 15px;
         color: #8b949e;
@@ -177,14 +187,6 @@
         background-color: rgba(255, 85, 85, 0.1); 
     }
 
-    .navigation-button:hover {
-        background-color: #21262d;
-        color: #ffffff;
-    }
     
-    .navigation-button.active {
-        border-left-color: #58a6ff;
-        background-color: #1f2428;
-        color: #58a6ff;
-    }
+    
 </style>

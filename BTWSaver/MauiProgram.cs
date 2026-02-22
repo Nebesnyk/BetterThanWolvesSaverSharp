@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui;
+﻿using BTWSaver.Services;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 
 namespace BTWSaver;
@@ -17,6 +18,7 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddMauiBlazorWebView();
+		builder.Services.AddSingleton<TrackerBrain>();
 
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();

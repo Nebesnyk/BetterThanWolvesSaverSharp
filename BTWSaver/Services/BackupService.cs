@@ -35,12 +35,18 @@ public class BackupService
     
     public static void Zip(string targetDir, string zipFilePath, IProgress<int> progress = null)
     {
+        if (File.Exists(zipFilePath))
+        {
+            File.Delete(zipFilePath);
+        }
+        
         using (ZipArchive za = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
         {
             List<string> streamOfFiles = Directory.EnumerateFiles(targetDir, "*", SearchOption.AllDirectories).ToList();
         
             int totalFiles = streamOfFiles.Count;
             int filesProcessed = 0;
+            int lastReportedPercentage = -1;
 
             foreach (string path in streamOfFiles)
             {
@@ -59,7 +65,11 @@ public class BackupService
                 if (totalFiles > 0)
                 {
                     int percentage = (filesProcessed * 100) / totalFiles;
-                    progress?.Report(percentage); 
+                    if (percentage > lastReportedPercentage)
+                    {
+                        progress?.Report(percentage);
+                        lastReportedPercentage = percentage;
+                    }
                 }
             }
         }
