@@ -55,13 +55,16 @@
             var result = await FolderPicker.Default.PickAsync(@"C:\Users\Name\AppData\Roaming\");
             ChosenSaveFilePath = result.Folder.Path;
             ChosenSaveFileName = Path.GetFileName(ChosenSaveFilePath);
+
+            bool alreadyExists = Brain.SaveFiles.Any(file => file.SaveFileName == ChosenSaveFileName);
+            
+            if (!alreadyExists)
+                Brain.SaveFiles.Add(new SaveFile {SaveFileName = ChosenSaveFileName, SaveFilePath = ChosenSaveFilePath});
+
+            Brain.LastOpenedFilePath = ChosenSaveFilePath;
             SaveSettings();
             
-            Brain.SaveFiles.Add(
-                new SaveFile {SaveFileName = ChosenSaveFileName, SaveFilePath = ChosenSaveFilePath});
             StateHasChanged();
-            
-            
             OnFolderChanged?.Invoke();
         }
         catch

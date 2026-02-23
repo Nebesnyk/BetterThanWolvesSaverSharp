@@ -68,10 +68,13 @@
     protected override void OnParametersSet()
     {
         string decodedName = System.Net.WebUtility.UrlDecode(SaveFileName);
+        activeSaveFile = Brain.SaveFiles.FirstOrDefault(t => t.SaveFileName.Equals(decodedName, StringComparison.OrdinalIgnoreCase));
+        
         if (activeSaveFile == null)
         {
             activeSaveFile = new SaveFile { SaveFileName = decodedName, SaveFilePath = ParentLayout?.ChosenSaveFilePath };
             Brain.SaveFiles.Add(activeSaveFile);
+            Brain.SaveToFile();
         }
     }
 
@@ -97,7 +100,7 @@
         {
             BackupService.DeleteDirectory(worldToWipe);
         
-            BackupService.UnZip(activeSaveFile.SaveFileName, GetPathToLastZipFile(), walkieTalkie);
+            BackupService.UnZip(activeSaveFile.SaveFilePath, GetPathToLastZipFile(), walkieTalkie);
         });
 
         _progressPercentApply = 100;
@@ -127,7 +130,7 @@
         
         await Task.Run(() =>
         {
-            BackupService.Zip(ParentLayout.ChosenSaveFilePath, GetPathToLastZipFile(), walkieTalkie);
+            BackupService.Zip(activeSaveFile.SaveFilePath, GetPathToLastZipFile(), walkieTalkie);
         });
         
         _progressPercentOverwrite = 100;
@@ -153,7 +156,7 @@
 
         await Task.Run(() => 
         {
-            BackupService.Zip(ParentLayout.ChosenSaveFilePath, pathToZipInto, walkieTalkie);
+            BackupService.Zip(activeSaveFile.SaveFilePath, pathToZipInto, walkieTalkie);
         });
 
         _progressPercentCreateNew = 100;
